@@ -34,7 +34,7 @@ class WebPage(object):
     from any particular HTTP library's API.
     """
 
-    def __init__(self, url, html, headers):
+    def __init__(self, url, html, headers, parsed_html=None):
         """
         Initialize a new WebPage object.
 
@@ -52,6 +52,7 @@ class WebPage(object):
         self.html = html
         self.headers = headers
 
+        self.parsed_html = parsed_html
         self._parse_html()
 
     def _parse_html(self):
