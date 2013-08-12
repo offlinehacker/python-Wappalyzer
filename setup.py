@@ -23,5 +23,6 @@ setup(
     tests_require = [
         'httpretty==0.6.0',
         'nose==1.3.0',
+        'mock'
     ]
 )

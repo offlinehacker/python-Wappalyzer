@@ -1,4 +1,5 @@
 from unittest import TestCase
+from mock import Mock
 
 from httpretty import HTTPretty, httprettified
 
@@ -6,6 +7,17 @@ from Wappalyzer import WebPage, Wappalyzer
 
 
 class WebPageTestCase(TestCase):
+    def test_parse(self):
+        webpage = WebPage(
+            'http://example.com',
+            '<html><script></script><script src="test"></script>'
+            '<meta name="name"></meta><meta name="name" content="content"></meta></html>',
+            {}
+        )
+
+        self.assertEquals(webpage.scripts[0], u"test")
+        self.assertEquals(webpage.meta, {"name": "content"})
+
     @httprettified
     def test_new_from_url(self):
         HTTPretty.register_uri(HTTPretty.GET, 'http://example.com/', body='snerble')
