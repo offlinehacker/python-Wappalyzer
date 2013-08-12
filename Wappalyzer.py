@@ -1,12 +1,21 @@
 import json
-import pkgutil
-import re
 import urllib2
 import warnings
 
 import requests
 
-from BeautifulSoup import BeautifulSoup
+try:
+    import re2 as re
+except ImportError:
+    import re
+
+try:
+    from lxml.html import fromstring
+except ImportError, e:
+    from BeautifulSoup import BeautifulSoup
+    use_lxml = False
+else:
+    use_lxml = True
 
 
 APPS_JSON_URL = 'https://raw.github.com/ElbertF/Wappalyzer/master/share/apps.json'
@@ -47,11 +56,20 @@ class WebPage(object):
 
     def _parse_html(self):
         """
-        Parse the HTML with BeautifulSoup to find <script> and <meta> tags.
+        Parse the HTML with lxml to find <script> and <meta> tags.
         """
-        self.parsed_html = soup = BeautifulSoup(self.html)
-        self.scripts = [ script['src'] for script in soup.findAll('script', src=True) ]
-        self.meta = { meta['name'].lower(): meta['content'] for meta in soup.findAll('meta', attrs=dict(name=True, content=True)) }
+
+        if use_lxml:
+            self.parsed_html = self.parsed_html or fromstring(self.html)
+            self.scripts = self.parsed_html.xpath('//script/@src')
+            self.meta = {
+                meta.attrib['name'].lower(): meta.attrib['content']
+                for meta in self.parsed_html.xpath('//meta[@name and @content]')
+            }
+        else:
+            self.parsed_html = soup = BeautifulSoup(self.html)
+            self.scripts = [ script['src'] for script in soup.findAll('script', src=True) ]
+            self.meta = { meta['name'].lower(): meta['content'] for meta in soup.findAll('meta', attrs=dict(name=True, content=True)) }
 
     @classmethod
     def new_from_url(cls, url):
