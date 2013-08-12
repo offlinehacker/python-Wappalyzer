@@ -239,13 +239,29 @@ class Wappalyzer(object):
         return all_implied_apps
 
 
-    def analyze(self, webpage):
+    def analyze(self, webpage, cats=None, apps=None, blacklist=[], include=None):
         """
         Return a list of applications that can be detected on the web page.
+
+        :param webpage: :class:`WebPage` to analyze
+        :param cats: List of category names to include (default all)
+        :param blacklist: List of blacklisted apps (default none)
+        :param include: List of included apps (default all)
         """
+
         detected_apps = set()
 
-        for app_name, app in self.apps.items():
+        for app_name, app in [
+            app for app in self.apps.items()
+            if app not in blacklist or (include and app in include)
+        ]:
+            # Filter speciffic categories
+            if cats and not next(
+                (cat for cat in app["cats"] if self.categories[cat] in cats),
+                None
+            ):
+                continue
+
             if self._has_app(app, webpage):
                 detected_apps.add(app_name)
 
